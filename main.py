@@ -3,7 +3,6 @@ from matplotlib import gridspec as gs
 import numpy as np
 import clicker
 import arm
-import field
 
 plt.figure(num=None, figsize=(8, 6), dpi=100, facecolor='w', edgecolor='k')
 gs = gs.GridSpec(2, 4)
