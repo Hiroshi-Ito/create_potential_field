@@ -1,36 +1,54 @@
 from matplotlib import pyplot as plt
+from matplotlib import gridspec as gs
 import numpy as np
+import fieldMap
+
+
+def get_ax_size(ax):
+    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    width, height = bbox.width, bbox.height
+    width *= fig.dpi
+    height *= fig.dpi
+    return width, height
+
 
 class clicker_class(object):
     def __init__(self, ax, pix_err=1):
         print "clicker init"
+        self.ax = ax
+        self.ax.set_title('BMI house layout at experiment room')
+        im = plt.imread("map.png");
+        self.xmax, self.ymax = im.shape[:2]
+        self.ax.imshow(im, extent=[0, self.ymax, 0, self.xmax])
+        self.ax.grid(True)
+        self.ax.autoscale(False)
+
         self.canvas = ax.get_figure().canvas
         self.cid = None
-        self.pt_positive_lst = []
-        self.pt_negative_lst = []
-        self.pt_positive = ax.plot([], [], marker='o', color='r',linestyle='none', zorder=5)[0]
-        self.pt_negative = ax.plot([], [], marker='o', color='b',linestyle='none', zorder=5)[0]
+        self.pt_lst = []
+        self.pt_plot = ax.plot([], [], marker='o',linestyle='none', zorder=5)[0]
         self.pix_err = pix_err
         self.connect_sf()
 
     def set_visible(self, visible):
         print "set_visible"
         '''sets if the curves are visible '''
-        self.pt_positive.set_visible(visible)
-        self.pt_negative.set_visible(visible)
+        self.pt_plot.set_visible(visible)
 
     def clear(self):
         print "clear"
         '''Clears the points'''
-        self.pt_positive_lst = []
-        self.pt_negative_lst = []
+        self.pt_lst = []
         self.redraw()
+
 
     def connect_sf(self):
         print "connect_sf"
         if self.cid is None:
-            self.cid = self.canvas.mpl_connect('button_press_event',
-                                               self.click_event)
+            self.cid = self.canvas.mpl_connect('button_press_event', self.click_event)
+            self.cid = self.canvas.mpl_connect('key_press_event', self.on_key)
+            #self.cid = self.canvas.mpl_connect()
+
 
     def disconnect_sf(self):
         print "disconnect_sf"
@@ -38,28 +56,52 @@ class clicker_class(object):
             self.canvas.mpl_disconnect(self.cid)
             self.cid = None
 
+
+    def on_key(self, event):
+        print event.key
+        if event.key == 'escape':
+            print 'escape, try to plot potential field'
+            self.plot_field_map()
+        if event.key == 'backspace':
+            print "clear all dots"
+            self.clear()
+
+
+    def plot_field_map(self):
+        print "plot_field"
+        #print self.pt_lst
+        xl, yl = zip(*self.pt_lst)
+        #print(get_ax_size(self.ax))
+        #print self.ax.im.shape
+        #zd, xe, ye = np.histogram2d(yl, xl, range=[[0, 467],[0, 807]], bins=1,normed=True)
+        #zd, xe, ye = np.histogram2d(yl, xl)
+        zd, xe, ye = np.histogram2d(yl, xl, range=[[0, self.xmax],[0, self.ymax]], normed=True)
+        self.ax.imshow(zd, origin='lower',extent=[0, self.ymax, 0, self.xmax],alpha=0.8)
+        self.canvas.draw()
+        #print zd
+        #plot_field_map(zd)
+        #field_map.canvas.draw()
+        #plt.imshow(zd, origin='lower')
+
+
+
     def click_event(self, event):
-        print "click_event"
+        print "click_event", event.key, event.button
         ''' Extracts locations from the user'''
         if event.key == 'shift':
-            self.pt_positive_lst = []
-            self.pt_negative_lst = []
+            print "Press shift"
+            self.pt_lst = []
             return
         if event.xdata is None or event.ydata is None:
             return
         if event.button == 1:
-            self.pt_positive_lst.append((event.xdata, event.ydata))
-
-            '''''
             if len(self.pt_lst) < 2:
                 self.pt_lst.append((event.xdata, event.ydata))
             else:
                 #self.pt_lst.pop(0)
                 self.pt_lst.append((event.xdata, event.ydata))
-            '''''
         elif event.button == 3:
-            self.pt_negative_lst.append((event.xdata, event.ydata))
-            #self.remove_pt((event.xdata, event.ydata))
+            self.remove_pt((event.xdata, event.ydata))
 
         self.redraw()
 
@@ -74,34 +116,17 @@ class clicker_class(object):
 
     def redraw(self):
         print "redraw"
-        if len(self.pt_positive_lst) > 0:
-            px, py = zip(*self.pt_positive_lst)
-        else:
-            px, py = [], []
-
-        if len(self.pt_negative_lst) > 0:
-            nx, ny = zip(*self.pt_negative_lst)
-        else:
-            nx, ny = [], []
-
-
-        #nx, ny = zip(*self.pt_negative_lst)
-        '''''
         if len(self.pt_lst) > 0:
             x, y = zip(*self.pt_lst)
         else:
             x, y = [], []
         #print x,y
-        if(len(x) > 1):
-            print x,y,x[0],x[1]
+        #if(len(x) > 1):
+            #print x,y,x[0],x[1]
             #ax.arrow(x[0],y[0],x[1]-x[0],y[1]-y[0],  fc="k", ec="k", head_width=10, head_length=20)
             #ax.quiver(x[0],y[0],x[1]-x[0],y[1]-y[0] ,angles='xy',scale_units='xy',scale=1)
-        '''''
-        self.pt_negative.set_xdata(nx)
-        self.pt_negative.set_ydata(ny)
-
-        self.pt_positive.set_xdata(px)
-        self.pt_positive.set_ydata(py)
+        self.pt_plot.set_xdata(x)
+        self.pt_plot.set_ydata(y)
         self.canvas.draw()
 
     def return_points(self):
