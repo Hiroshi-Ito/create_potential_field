@@ -5,10 +5,7 @@ import scipy.ndimage as ndi
 
 arm_trj = [[ 0 , -72 ],[ 6 , -71 ],[ 13 , -70 ],[ 19 , -69 ],[ 25 , -67 ],[ 30 , -65 ],
             [ 36 , -62 ],[ 41 , -59 ],[ 46 , -55 ],[ 51 , -50 ],[ 55 , -46 ],[ 59 , -41 ],
-            [ 62 , -36 ],[ 65 , -30 ],[ 68 , -23 ],[ 70 , -16 ],[ 71 , -11 ],
-            [ 72 , 0 ],[ 71 , 6 ],[ 70, 13 ],[ 69 , 19 ],[ 67 , 25 ],[ 65 , 30 ],
-            [ 62, 36 ], [ 59 , 41 ],[ 55 , 46 ], [ 50 , 51 ], [ 46 , 55 ], [ 41 , 59 ],
-            [ 36 ,62 ]
+            [ 62 , -36 ],[ 65 , -30 ],[ 68 , -23 ],[ 70 , -16 ],[ 71 , -11 ],[ 72 , 0 ]
             ]
 
 
@@ -187,11 +184,11 @@ class clicker_class(object):
         #print self.ax.im.shape
         #zd, xe, ye = np.histogram2d(yl, xl, range=[[0, 467],[0, 807]], bins=1,normed=True)
         #zd, xe, ye = np.histogram2d(yl, xl)
-        
+
         # heatmap mode
         #zd, xe, ye = np.histogram2d(yl, xl, range=[[0, self.xmax],[0, self.ymax]], normed=True)
 
-        
+
         # gaussian ffilter
         self.map = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
 
@@ -211,7 +208,7 @@ class clicker_class(object):
         if event.key == 'shift':
             print "Press shift"
             self.pt_lst = []
-            return            
+            return
         if event.xdata is None or event.ydata is None:
             return
         if event.button == 1:
@@ -267,10 +264,9 @@ class clicker_class(object):
         xl, yl = self.pt_lst[1]
         max_num = np.amax(self.map)
         raito = self.map[yl][xl] / max_num
-        desired_pos = int(round(30 * raito, 0))
+        desired_pos = int(round(17 * raito, 0))
         #print desired_pos
         x, y = arm_trj[desired_pos]
         print "target_position : ", x, y
         self.larm.calc_invkinematicks(x, y)
         #print raito, desired_pos
-
