@@ -138,19 +138,21 @@ def generate_graph():
     xi = np.linspace(view_xmin, view_xmax, 256)
     yi = np.linspace(view_ymin, view_ymax, 256)
     t0 = time.clock()
-    zd = grid_density_kdtree(xl, yl, xi, yi, 70)
+    #zd = grid_density_kdtree(xl, yl, xi, yi, 70)
     plt.title('function of 5 nearest using kdtree\n'+str(time.clock()-t0)+"sec")
     cmap=cm.jet
     A = (cmap(zd/256.0)*255).astype(np.uint8)
     #A[:,:,3] = zd
-    plt.imshow(A , origin='lower', extent=[view_xmin, view_xmax, view_ymin, view_ymax])
+    #plt.imshow(A , origin='lower', extent=[view_xmin, view_xmax, view_ymin, view_ymax])
     plt.scatter(xlvis, ylvis)
 
     # gaussian filter
     plt3 = fig.add_subplot(223)
     plt3.set_axis_off()
     t0 = time.clock()
-    zd = grid_density_gaussian_filter(view_xmin, view_ymin, view_xmax, view_ymax, 256, 256, zip(xl, yl))
+    print "gaussian fileter"
+    print view_xmin, view_ymin, view_xmax, view_ymax
+    zd = grid_density_gaussian_filter(view_xmin, view_ymin, view_xmax, view_ymax, 1024, 1024, zip(xl, yl))
     plt.title('ndi.gaussian_filter - '+str(time.clock()-t0)+"sec")
     plt.imshow(zd , origin='lower', extent=[view_xmin, view_xmax, view_ymin, view_ymax])
     plt.scatter(xlvis, ylvis)
