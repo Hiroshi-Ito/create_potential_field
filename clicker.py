@@ -31,7 +31,7 @@ class clicker_class(object):
 
         self.larm = larm
         self.rarm = rarm
-        self.larm.calc_invkinematicks(x=0, y=72)
+        self.larm.calc_invkinematicks(y=-72, x=0)
         self.rarm.calc_invkinematicks(x=72, y=0)
 
         self.ax.set_title('BMI house layout at experiment room')
