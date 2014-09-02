@@ -2,8 +2,15 @@ from matplotlib import pyplot as plt
 from matplotlib import gridspec as gs
 import numpy as np
 import scipy.ndimage as ndi
-import fieldMap
-import csv
+
+arm_trj = [[ 0 , -72.0 ],[ 6 , -72 ],[ 13 , -71 ],[ 19 , -70 ],[ 25 , -68 ],[ 30 , -65 ],
+            [ 36 , -62 ],[ 41 , -59 ],[ 46 , -55 ],[ 51 , -51 ],[ 55 , -46 ],[ 59 , -41 ],
+            [ 62 , -36 ],[ 65 , -30 ],[ 68 , -25 ],[ 70 , -19 ],[ 71 , -13 ],[ 72 , -6 ],
+            [ 72 , 0 ],[ 72 , 6 ],[ 71 , 13 ],[ 70 , 19 ],[ 68 , 25 ],[ 65 , 30 ],
+            [ 62, 36 ], [ 59 , 41 ],[ 55 , 46 ], [ 51 , 51 ], [ 46 , 55 ], [ 41 , 59 ]
+            ]
+
+
 
 
 def grid_density_kdtree(xl, yl, xi, yi, dfactor):
@@ -95,7 +102,7 @@ def grid_density_gaussian_filter(x_max, y_max, data):
 
 '''''
 def grid_density_gaussian_filter(x_max, y_max, data):
-    r = 50
+    r = 30
     img = np.zeros((y_max, x_max))
     for x, y in data:
         x = int(x)
@@ -107,9 +114,17 @@ def grid_density_gaussian_filter(x_max, y_max, data):
 
 
 class clicker_class(object):
-    def __init__(self, ax, pix_err=1):
+    def __init__(self, ax, larm, rarm ):
+        self.mode = 0
+        self.map = []
         print "clicker init"
         self.ax = ax
+
+        self.larm = larm
+        self.rarm = rarm
+        self.larm.calc_invkinematicks(x=0, y=72)
+        self.rarm.calc_invkinematicks(x=72, y=0)
+
         self.ax.set_title('BMI house layout at experiment room')
         im = plt.imread("map.png");
         self.ymax, self.xmax = im.shape[:2]
@@ -121,7 +136,7 @@ class clicker_class(object):
         self.cid = None
         self.pt_lst = []
         self.pt_plot = ax.plot([], [], marker='o',linestyle='none', zorder=5)[0]
-        self.pix_err = pix_err
+        #self.pix_err = pix_err
         self.connect_sf()
 
     def set_visible(self, visible):
@@ -134,6 +149,7 @@ class clicker_class(object):
         '''Clears the points'''
         self.pt_lst = []
         self.redraw()
+        self.mode = 1
 
 
     def connect_sf(self):
@@ -175,14 +191,14 @@ class clicker_class(object):
 
         
         # gaussian ffilter
-        zd = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
+        self.map = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
 
         #zd = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
         #np.savetxt("a.csv", zd, fmt="%.0f",delimiter=",")
-        np.savetxt("fieldMapArray.csv", zd, delimiter=",")
+        np.savetxt("fieldMapArray.csv", self.map*100000, fmt="%.00f", delimiter=",")
 
         #writecsv.writerows(zd)
-        self.ax.imshow(zd, origin='lower', extent=[0, self.xmax, 0, self.ymax], alpha=0.8)
+        self.ax.imshow(self.map, origin='lower', extent=[0, self.xmax, 0, self.ymax], alpha=0.3)
         #np.savetxt("imshow.csv", a, fmt="%.0f",delimiter=",")
         self.canvas.draw()
 
@@ -193,15 +209,21 @@ class clicker_class(object):
         if event.key == 'shift':
             print "Press shift"
             self.pt_lst = []
-            return
+            return            
         if event.xdata is None or event.ydata is None:
             return
         if event.button == 1:
             if len(self.pt_lst) < 2:
                 self.pt_lst.append((event.xdata, event.ydata))
             else:
-                #self.pt_lst.pop(0)
-                self.pt_lst.append((event.xdata, event.ydata))
+                if self.mode == 1:
+                    self.pt_lst.pop(0)
+                    self.pt_lst.append((event.xdata, event.ydata))
+                    self.arm_angle()
+
+                else:
+                    self.pt_lst.append((event.xdata, event.ydata))
+
         elif event.button == 3:
             self.remove_pt((event.xdata, event.ydata))
 
@@ -236,3 +258,17 @@ class clicker_class(object):
         '''Returns the clicked points in the format the rest of the
         code expects'''
         return np.vstack(self.pt_lst).T
+
+
+
+    def arm_angle(self):
+        xl, yl = self.pt_lst[1]
+        max_num = np.amax(self.map)
+        raito = self.map[yl][xl] / max_num
+        desired_pos = int(round(30 * raito, 0))
+        #print desired_pos
+        x, y = arm_trj[desired_pos]
+        print "target_position : ", x, y
+        self.larm.calc_invkinematicks(x, y)
+        #print raito, desired_pos
+

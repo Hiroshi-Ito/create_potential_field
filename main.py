@@ -35,13 +35,11 @@ rightArm.set_title('rightArm')
 #fig = houseMap.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
 
 
-cc = clicker.clicker_class(houseMap)
 #fm = fieldMap.field_class(houseMap)
 larm = arm.arm_class(leftArm)
 rarm = arm.arm_class(rightArm)
+cc = clicker.clicker_class(houseMap, larm, rarm)
 
-#larm.calc_invkinematicks(x=0, y=72)
-#rarm.calc_invkinematicks(x=72, y=0)
 
 
 plt.show()
