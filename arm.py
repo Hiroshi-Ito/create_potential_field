@@ -42,5 +42,3 @@ class arm_class(object):
         self.pt_plot.set_xdata(self.x)
         self.pt_plot.set_ydata(self.y)
         #print x1,y1,x2,y2
-
-        
