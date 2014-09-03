@@ -2,11 +2,31 @@ from matplotlib import pyplot as plt
 from matplotlib import gridspec as gs
 import numpy as np
 import scipy.ndimage as ndi
+import matplotlib.cm as cm
+from scipy.spatial import KDTree
+import math
+#import Gaussian_kernel_smooth_density
 
 arm_trj = [[ 0 , -72 ],[ 6 , -71 ],[ 13 , -70 ],[ 19 , -69 ],[ 25 , -67 ],[ 30 , -65 ],
             [ 36 , -62 ],[ 41 , -59 ],[ 46 , -55 ],[ 51 , -50 ],[ 55 , -46 ],[ 59 , -41 ],
             [ 62 , -36 ],[ 65 , -30 ],[ 68 , -23 ],[ 70 , -16 ],[ 71 , -11 ],[ 72 , 0 ]
             ]
+
+
+def grid_density_kdtree(xl, yl, xi, yi, dfactor):
+    zz = np.empty([len(xi),len(yi)], dtype=np.uint8)
+    zipped = zip(xl, yl)
+    kdtree = KDTree(zipped)
+    for xci in range(0, len(xi)):
+        xc = xi[xci]
+        for yci in range(0, len(yi)):
+            yc = yi[yci]
+            density = 0.
+            retvalset = kdtree.query((xc,yc), k=5)
+            for dist in retvalset[0]:
+                density = density + math.exp(-dfactor * pow(dist, 2)) / 5
+            zz[yci][xci] = min(density, 1.0) * 255
+    return zz
 
 
 
@@ -95,6 +115,7 @@ class clicker_class(object):
         # gaussian ffilter
         self.map = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
 
+        # plot density calculated with kdtree
         #save fieldmap
         #np.savetxt("fieldMapArray.csv", self.map*100000, fmt="%.00f", delimiter=",")
         self.ax.imshow(self.map, origin='lower', extent=[0, self.xmax, 0, self.ymax], alpha=0.3)
