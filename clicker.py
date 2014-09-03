@@ -88,27 +88,16 @@ class clicker_class(object):
 
     def plot_field_map(self):
         print "plot_field"
-        #print self.pt_lst
         xl, yl = zip(*self.pt_lst)
-        #print(get_ax_size(self.ax))
-        #print self.ax.im.shape
-        #zd, xe, ye = np.histogram2d(yl, xl, range=[[0, 467],[0, 807]], bins=1,normed=True)
-        #zd, xe, ye = np.histogram2d(yl, xl)
-
         # heatmap mode
         #zd, xe, ye = np.histogram2d(yl, xl, range=[[0, self.xmax],[0, self.ymax]], normed=True)
-
 
         # gaussian ffilter
         self.map = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
 
-        #zd = grid_density_gaussian_filter(self.xmax, self.ymax, self.pt_lst)
-        #np.savetxt("a.csv", zd, fmt="%.0f",delimiter=",")
-        np.savetxt("fieldMapArray.csv", self.map*100000, fmt="%.00f", delimiter=",")
-
-        #writecsv.writerows(zd)
+        #save fieldmap
+        #np.savetxt("fieldMapArray.csv", self.map*100000, fmt="%.00f", delimiter=",")
         self.ax.imshow(self.map, origin='lower', extent=[0, self.xmax, 0, self.ymax], alpha=0.3)
-        #np.savetxt("imshow.csv", a, fmt="%.0f",delimiter=",")
         self.canvas.draw()
 
 
